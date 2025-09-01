@@ -4,15 +4,17 @@ import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
 import File from "../Model/File.js";
 import { json } from "express";
+import Comment from "../Model/comment.js"
 // import postLike from "../Model/postLike.js";
 import postLike from "../Model/postLike.js";
 import Follow from '../Model/Follow.js';
+import { now } from "mongoose";
 
 export const Signup = async(req,res)=>{
     try {
-        console.log("Signup API called");
+       
         const { email, fullname, password, username } = req.body;
-        console.log(email, fullname, password, username);
+        
 
         if (!email || !fullname || !password || !username) {
             return res.status(400).json({ message: "All fields are required" });
@@ -25,7 +27,7 @@ export const Signup = async(req,res)=>{
 
         const salt = await bcrypt.genSalt(10); // Use async version
         const hash = await bcrypt.hash(password, salt);
-        console.log(hash);
+       
 
         await User.create({
             email,
@@ -46,25 +48,20 @@ export const Signup = async(req,res)=>{
 export const SignIn = async(req,res)=>{
     try{
         const {email, password} = req.body;
-        console.log(email,password)
+        
         
         if(!email||!password){
             return res.status(400).json({message: "All fileds are required"})
         }
         
-        console.log("ok")
         const existUser = await User.findOne({email})
-        console.log(existUser)
+      
         if(existUser){
-            console.log("matched")
+           
         const isMatch = bcrypt.compareSync(password, existUser.password);
         if(isMatch){
-            console.log(email,password)
+           
             const token = jwt.sign({ email: existUser.email }, 'secret', { expiresIn: '1h' });
-
-        //    console.log( localStorage.setItem("email", email))
-
-            console.log("Generated Token:", token); // Debugging token output
     
             // Set token in the cookie
             res.cookie('tokenData', token, {
@@ -73,9 +70,6 @@ export const SignIn = async(req,res)=>{
                 sameSite: 'None', // Important for cross-origin cookies
                 expires: new Date(Date.now() + 3600000), // 1-hour expiry
             });
-            console.log(res)
-            
-            // console.log("Cookies after setting:", req.cookies);
             return res.status(200).json({message:"user are successfully Login", email:email})
         }
         return res.status(200).json({message:"user are successfully Login", email:email})
@@ -86,49 +80,46 @@ export const SignIn = async(req,res)=>{
 }
 
 export const Logout = (req,res)=>{
-    console.log("logout api")
+   
     // res.clearCookie('token')
     return res.status(200).json({msg: "Logout successfully"})
-    // res.send("Logout successfully")
+    
 }
 
 export const Posts = async(req,res)=>{
-    // console.log(req.cookie.tokenData)
+    
        const postData = await File.find();
-       console.log("file: ",postData)
+       
 
        res.status(200).json({data:postData})
 } 
 export const userPosts = async(req,res)=>{
     const email = req.params.userId;
-    // console.log(email)
-           console.log("userid:",email)
+
      const postData = await User.findOne({email});
-     console.log("postData",postData)
+     
      res.status(200).json({postData})
 }
 
 export const likedata = async(req,res)=>{
-    // console.log(req.cookie.tokenData)
-    // console.log("likedata")
+    
        const likeData = await postLike.find();
-    //    console.log("likedata is: ",likeData)
+   
        res.status(200).json({data:likeData})
 } 
 
  export const profile = async(req,res)=>{
      const email = req.params.userId;
-    //  console.log("profile route: ",email)
+    
      const profileData = await User.findOne({email});
-     console.log("profiledata:",profileData)
-    // console.log("profiledata :",profileData)
+
        res.status(200).json({data:profileData})
  }
 
 
 export const LikePhoto = async (req, res) => {
     const { postId, userId } = req.params;
-    console.log("Post ID:", postId, "User ID:", userId);
+   
 
     try {
         // Find the post document using postId (assuming `File` is your Post model)
@@ -139,10 +130,8 @@ export const LikePhoto = async (req, res) => {
 
         // Find the existing postLike document for this postId
         let postLikeDoc = await postLike.findOne({ postId });
-             console.log(postLikeDoc)
+             
         if (!postLikeDoc) {
-            // If postLike document doesn't exist, create a new one
-            // console.log("errror yha aa rha")
             postLikeDoc = new postLike({
                 postId,
                 userId,
@@ -174,7 +163,7 @@ export const LikePhoto = async (req, res) => {
 
             // Save the updated document (this time it's a Mongoose document instance)
             await postLikeDoc.save();
-            console.log("Post liked!");
+           
 
             // Return the updated likeCount
             return res.status(200).json({
@@ -195,18 +184,17 @@ export const LikePhoto = async (req, res) => {
 // Follow and unFollow User
 export const Followuser = async(req,res)=>{
    const  {userId,PostId} = req.params;
-    console.log("follow: ", userId, JSON.parse(PostId))
+    console.log("follow")
      const email = JSON.parse(userId)
      const postId = JSON.parse(PostId)
     try{
         const post = await User.findOne({email});
-        console.log(post)
+
         if(!post){
             return res.status(404).json({ message: "Post not found" });
         }
-        // console.log(post)
-        let FollowDoc = await Follow.findOne({postId});
-        console.log("followdoc: ",FollowDoc)
+       
+        let FollowDoc = await Follow.findOne({postId})
         
         if(!FollowDoc){
 
@@ -241,23 +229,32 @@ export const Followuser = async(req,res)=>{
                 Followd:FollowDoc.Followd
             });
         }
-         
     }
-    
     catch(error){
            console.log(error)
     }
 }
 
+export const unFollowUser = async(req,res)=>{
+    try{
+        const{userId,unFollowUserId} = req.params;
+        const UserId = JSON.parse(userId);
+        
+        const deleteData  = await Follow.deleteOne({userId:UserId});
+        res.status(200).json({msg:"unfollow user successfully"})
+    }catch(err){
+        console.log(err)
+    }
+                   
+}  
+
 export const followedUsers = async (req, res) => {
     try {
         const { UserId } = req.params;
-        console.log(UserId)
+        
         const userId = JSON.parse(UserId); // no need to JSON.parse
-        console.log("followedUser:", userId);
 
         const response = await Follow.find({userId});
-        console.log("res:", response);
 
         return res.status(200).json({
             followedUser: response,
@@ -271,9 +268,60 @@ export const followedUsers = async (req, res) => {
 
 // all user
 export const Users = async(req,res)=>{
-       console.log("users")
        const users = await User.find();
-    //    console.log("user",users)
     res.status(200).json({res: users})
 
+}
+
+export const postComment  = async(req,res)=>{
+    const {userId,userpostId,comment} = req.body;
+   try{
+       let CommentData = await Comment.findOne({userPostId:userpostId})
+        if(!CommentData){
+           console.log("if")
+          CommentData = new Comment({
+                //   userId: [userId],
+                  userPostId:userpostId,
+                  comment:[{[userId]: comment}]
+            })
+            console.log("commetData: ",CommentData);
+            await CommentData.save(); 
+            
+           }else{
+               const FindUserId = Comment.findOne({userId})
+               if(!FindUserId){
+               CommentData.userId.push(userId);
+            }
+            CommentData.comment.push({[userId]:comment});
+            
+            await CommentData.save();
+        }
+        console.log(userpostId)
+        const findComments =  await Comment.findOne({userPostId:userpostId})
+        res.status(200).json({
+            msg:"comment added successfully",
+            comment:findComments
+        })
+
+   }catch(err){
+    res.status(500).json({err:err})
+   }
+}
+
+export const userComments = async(req,res)=>{
+    try{
+        const postId = req.params.postId;
+        console.log(postId);
+        const comment = await Comment.findOne({userPostId:postId});
+        console.log(comment)
+         res.status(200).json({
+            msg:"comment added successfully",
+            comment:comment
+        })
+
+    }catch(err){
+        res.status(500).json({err:err})
+    }
+
+    
 }

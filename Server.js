@@ -40,7 +40,7 @@ server.use('/Photos', express.static('Photos'));
 server.use('/user', router);
  
 // Upload route
-server.post('/upload', upload.single('image'), async (req, res) => {
+server.post('/upload', upload.array('image', 10), async (req, res) => {
     
     const {userId} = req.body;
     const email = JSON.parse(userId)
@@ -69,8 +69,8 @@ server.get('/content', (req, res) => {
      const email = 'yadavyaman@gmail.com'
     res.cookie("test", email, {
         httpOnly: true,
-        secure: false,  // In production, set to `true` with HTTPS
         sameSite: 'None',  // Necessary for cross-origin requests
+        secure: false,  // In production, set to `true` with HTTPS
         expires: new Date(Date.now() + 3600000),  // 1-hour expiry
     });
 
