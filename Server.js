@@ -11,9 +11,10 @@ import path from 'path';
 // const cors = require('cors');
 const server = express();
 
+const FRONTEND_URL = "https://soical-media-frontend.vercel.app"||'http://localhost:5173';
 // CORS configuration
 const corsOptions = {
-    origin: 'http://localhost:5173',  // Frontend URL
+    origin: FRONTEND_URL,  // Frontend URL
     credentials: true,  // Allow cookies to be sent with requests
 };
 
