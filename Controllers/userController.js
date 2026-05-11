@@ -87,11 +87,12 @@ export const Logout = (req,res)=>{
 }
 
 export const Posts = async(req,res)=>{
+    console.log("welcome to userpost: ")
+    const postData = await File.find();
     
-       const postData = await File.find();
-       
-
-       res.status(200).json({data:postData})
+    console.log("find userpost: ", postData)
+      
+       return res.status(200).json({data:postData})
 } 
 export const userPosts = async(req,res)=>{
     const email = req.params.userId;

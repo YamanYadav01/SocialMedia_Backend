@@ -17,6 +17,7 @@ const corsOptions = {
     credentials: true,  // Allow cookies to be sent with requests
 };
 
+server.use('/Photos', express.static('Photos'));
 server.use(cors(corsOptions));  // Use CORS middleware
 server.use(express.urlencoded({ extended: false }));
 server.use(express.json());
@@ -40,21 +41,24 @@ server.use('/Photos', express.static('Photos'));
 server.use('/user', router);
  
 // Upload route
-server.post('/upload', upload.array('image', 10), async (req, res) => {
-    
+server.post("/upload", upload.single("image"), async (req, res) => {
+
+  console.log(req.file);6
+
     const {userId} = req.body;
     const email = JSON.parse(userId)
   
+    console.log("body data: ", req.body)
      const username = await User.findOne({email});
-           
-    if (req.file) {
-        const newFile = new File({
-            filename: req.file.filename,
+    if (username) {
+        const newFile = await new File({
+            filename:  req.file.filename,
             thoughts: req.body.thoughts,
             userId : req.body.userId,
             username: username.username
         });
         
+        console.log("post created: ", newFile)
         await newFile.save();
         res.status(200).json({message: "Post Created Successfully"})
         // res.send("Post Created Successfully");
