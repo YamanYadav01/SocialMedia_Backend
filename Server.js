@@ -88,11 +88,11 @@ server.get('/content', (req, res) => {
 dotenv.config();
 
 // path
-const _dirname = path.resolve();
-server.use(express.static(path.join(_dirname,"/Frontend/Social_Media/dist")));
-server.get('*',(req,res)=>{
-    res.sendFile(path.resolve(_dirname, "frontend","Social_Media" ,'dist',"index.html"))
-})  
+// const _dirname = path.resolve();
+// server.use(express.static(path.join(_dirname,"/Frontend/Social_Media/dist")));
+// server.get('*',(req,res)=>{
+//     res.sendFile(path.resolve(_dirname, "frontend","Social_Media" ,'dist',"index.html"))
+// })  
 
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log("✅ MongoDB connected successfully"))
